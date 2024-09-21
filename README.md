@@ -9,7 +9,7 @@ This project is a library management system built with FastAPI. It includes two 
 ### Prerequisites
 
 - Docker and Docker Compose installed on your machine.
-- Python 3.9 or later.
+- Python 3.10 or later.
 
 ### Installation
 
