@@ -1,0 +1,162 @@
+services:
+  admin-api:
+    build:
+      context: ./admin-api
+      dockerfile: Dockerfile
+    container_name: admin-api
+    networks:
+      - kafka-net
+      - admin-net
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./.build.env
+    environment:
+      DATABASE_URL: postgresql://adminUser:adminPassword@admin-db:5432/admin
+    depends_on:
+      kafka:
+        condition: service_healthy
+      admin-db:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8001/health/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    develop:
+      watch:
+        - action: sync
+          path: ./Admin_API
+          target: /app
+
+  admin-db:
+    image: postgres:15-alpine
+    container_name: admin-db
+    networks:
+      - admin-net
+    volumes:
+      - admin_postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: adminUser
+      POSTGRES_PASSWORD: adminPassword
+      POSTGRES_DB: admin
+
+  frontend-api:
+    build:
+      context: ./frontend-api
+      dockerfile: Dockerfile
+    container_name: frontend-api
+    networks:
+      - kafka-net
+      - frontend-net
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./.build.env
+    environment:
+      DATABASE_URL: postgresql://feUser:fePassword@frontend-db:5432/frontend
+    depends_on:
+      kafka:
+        condition: service_healthy
+      frontend-db:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    develop:
+      watch:
+        - action: sync
+          path: ./Frontend_API
+          target: /app
+
+  frontend-db:
+    image: postgres:15-alpine
+    container_name: frontend-db
+    networks:
+      - frontend-net
+    volumes:
+      - frontend_postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: feUser
+      POSTGRES_PASSWORD: fePassword
+      POSTGRES_DB: frontend
+
+  kafka:
+    image: bitnami/kafka
+    container_name: kafka
+    ports:
+      - "9092:9092"
+      - "9094:9094"
+    env_file:
+      - ./.build.env
+    environment:
+      KAFKA_CFG_NODE_ID: 0
+      KAFKA_CFG_PROCESS_ROLES: controller,broker
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://host.docker.internal:9094
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka:9093
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      ALLOW_PLAINTEXT_LISTENER: yes
+    networks:
+      - kafka-net
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "kafka-topics.sh",
+          "--bootstrap-server=localhost:9092",
+          "--list",
+        ]
+      interval: 15s
+      retries: 5
+      start_period: 30s
+      timeout: 20s
+
+  kafka-init:
+    image: bitnami/kafka
+    container_name: kafka-init
+    networks:
+      - kafka-net
+    env_file:
+      - ./.build.env
+    working_dir: /opt/bitnami/kafka/bin
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command: |
+      # blocks until kafka is reachable
+      kafka-topics.sh --bootstrap-server kafka:9092 --list
+
+      echo -e 'Creating kafka topics'
+      kafka-topics.sh --create --if-not-exists --topic ${KAFKA_BORROW_BOOK_TOPIC} --replication-factor 1 --partitions 1 --bootstrap-server kafka:9092
+      kafka-topics.sh --create --if-not-exists --topic ${KAFKA_RETURN_BOOK_TOPIC} --replication-factor 1 --partitions 1 --bootstrap-server kafka:9092
+      kafka-topics.sh --create --if-not-exists --topic ${KAFKA_REMOVE_BOOK_TOPIC} --replication-factor 1 --partitions 1 --bootstrap-server kafka:9092
+      kafka-topics.sh --create --if-not-exists --topic ${KAFKA_ADD_BOOK_TOPIC} --replication-factor 1 --partitions 1 --bootstrap-server kafka:9092
+      kafka-topics.sh --create --if-not-exists --topic ${KAFKA_CREATE_USER_TOPIC} --replication-factor 1 --partitions 1 --bootstrap-server kafka:9092
+      kafka-topics.sh --create --if-not-exists --topic ${KAFKA_UPDATE_USER_TOPIC} --replication-factor 1 --partitions 1 --bootstrap-server kafka:9092
+
+      echo -e 'Successfully created the following topics:'
+      kafka-topics.sh --bootstrap-server kafka:9092 --list
+
+networks:
+  kafka-net:
+    driver: bridge
+  admin-net:
+    driver: bridge
+  frontend-net:
+    driver: bridge
+
+volumes:
+  admin_postgres_data:
+    driver: local
+  frontend_postgres_data:
+    driver: local
+
+    
