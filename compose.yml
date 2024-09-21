@@ -27,7 +27,7 @@ services:
     develop:
       watch:
         - action: sync
-          path: ./Admin_API
+          path: ./admin-api
           target: /app
 
   admin-db:
@@ -70,7 +70,7 @@ services:
     develop:
       watch:
         - action: sync
-          path: ./Frontend_API
+          path: ./frontend-api
           target: /app
 
   frontend-db:
