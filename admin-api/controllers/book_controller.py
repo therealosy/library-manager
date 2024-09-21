@@ -42,3 +42,7 @@ class BookController(BaseController):
     def get_all_borrowed_books(self) -> List[BorrowedBookModel]:
         self._logger.info("Fetching all borrowed books")
         return self.service.get_all_borrowed()
+    
+    def close(self) -> None:
+        self.service.close()
+

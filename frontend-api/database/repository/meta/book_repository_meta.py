@@ -38,3 +38,6 @@ class BookRepositoryMeta(ABC):
     def rollback(self) -> None:
         pass
     
+    @abstractmethod
+    def close(self) -> None:
+        pass

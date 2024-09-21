@@ -56,3 +56,6 @@ class BookRepository(BookRepositoryMeta):
 
     def rollback(self) -> None:
         self.db.rollback()
+
+    def close(self) -> None:
+        self.db.close()

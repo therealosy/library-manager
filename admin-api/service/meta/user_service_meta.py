@@ -41,3 +41,7 @@ class UserServiceMeta(ABC):
     @abstractmethod
     def rollback(self) -> None:
         pass
+
+    @abstractmethod
+    def close(self) -> None:
+        pass

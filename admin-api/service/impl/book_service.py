@@ -177,6 +177,7 @@ class BookService(BookServiceMeta):
         return book
 
     def get_all(self) -> List[BookModel]:
+        self._logger.info("Getting all")
         try:
             books = self.book_repository.get_all()
         except Exception as e:
@@ -189,6 +190,7 @@ class BookService(BookServiceMeta):
         return books
 
     def get_all_borrowed(self) -> List[BorrowedBookModel]:
+        self._logger.info("Getting all borrowed")
         try:
             books = self.book_repository.get_all_borrowed()
         except Exception as e:
@@ -229,3 +231,7 @@ class BookService(BookServiceMeta):
 
     def rollback(self) -> None:
         self.book_repository.rollback()
+        
+    def close(self) -> None:
+        self.book_repository.close()
+        self.borrow_entry_repository.close()

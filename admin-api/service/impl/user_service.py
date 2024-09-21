@@ -129,3 +129,6 @@ class UserService(UserServiceMeta):
 
     def rollback(self) -> None:
         self.repository.rollback()
+        
+    def close(self) -> None:
+        self.repository.close()

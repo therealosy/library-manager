@@ -29,7 +29,7 @@ class BookRepository(BookRepositoryMeta):
     def get_by_title(self, title: str) -> BookModel:
         return self.db.query(BookSchema).filter(BookSchema.title == title).first()
 
-    def get_all_borrowed(self) -> List[BookModel]:
+    def get_all_borrowed(self) -> List[BorrowedBookModel]:
         result = (
             self.db.query(BookSchema, BorrowEntrySchema)
             .join(BorrowEntrySchema)
@@ -83,3 +83,6 @@ class BookRepository(BookRepositoryMeta):
 
     def rollback(self) -> None:
         self.db.rollback()
+        
+    def close(self) -> None:
+        self.db.close()

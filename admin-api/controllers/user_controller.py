@@ -35,3 +35,6 @@ class UserController(BaseController):
             self._logger.info("Including returned books")
             return self.service.get_all_users_books_including_returned()
         return self.service.get_all_users_currently_borrowed_books()
+    
+    def close(self) -> None:
+        self.service.close()

@@ -48,3 +48,6 @@ class BookController(BaseController):
         return await self.book_service.borrow_book(
             id, user_email, borrow_details.borrow_duration_days
         )
+
+    def close(self) -> None:
+        self.book_service.close()

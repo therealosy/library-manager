@@ -58,3 +58,6 @@ class BorrowEntryRepository(BorrowEntryRepositoryMeta):
 
     def rollback(self) -> None:
         self.db.rollback()
+
+    def close(self) -> None:
+        self.db.close()

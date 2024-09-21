@@ -72,7 +72,7 @@ class UserRepository(UserRepositoryMeta):
 
     def get_all_users_with_currently_borrowed_books(self) -> List[UserBooksModel]:
         results = (
-            self.db.query(UserSchema, BookSchema, BorrowEntrySchema.return_date)
+            self.db.query(UserSchema, BookSchema, BorrowEntrySchema)
             .select_from(UserSchema)
             .join(BorrowEntrySchema)
             .filter(BorrowEntrySchema.is_returned == False)
@@ -81,7 +81,7 @@ class UserRepository(UserRepositoryMeta):
         )
         users_books = {}
 
-        for user, book, return_date in results:
+        for user, book, borrow_entry in results:
             if user.id not in users_books:
                 self._logger.debug(f"user id: {user.id}")
                 users_books[user.id] = {
@@ -93,12 +93,14 @@ class UserRepository(UserRepositoryMeta):
                     "borrowed_books": [],
                 }
             users_books[user.id]["borrowed_books"].append(
-                BookModel(
+                BorrowedBookModel(
                     id=book.id,
                     title=book.title,
                     publisher=book.publisher,
                     category=book.category,
-                    return_date=return_date,
+                    date_borrowed=borrow_entry.date_borrowed,
+                    return_date=borrow_entry.return_date,
+                    is_returned=borrow_entry.is_returned,
                 )
             )
 
@@ -113,3 +115,6 @@ class UserRepository(UserRepositoryMeta):
 
     def rollback(self) -> None:
         self.db.rollback()
+
+    def close(self) -> None:
+        self.db.close()

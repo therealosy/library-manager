@@ -32,3 +32,7 @@ class UserController(BaseController):
     async def add_user(self, user: UserModel) -> UserModel:
         self._logger.info(f"Adding user with email: {user.email}")
         return await self.service.add(user)
+    
+    def close(self) -> None:
+        self.service.close()
+

@@ -26,7 +26,7 @@ async def get_all_borrowed_books(
 async def get_book_by_id(
     id: int, controller: BookController = Depends(BookController)
 ) -> BookModel:
-    return controller.get_by_id(id)
+    return controller.get_book_by_id(id)
 
 
 @books_route.post("/")

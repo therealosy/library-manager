@@ -68,6 +68,7 @@ def handle_add_book_message(
         except Exception as e:
             logger.error(f"Failed to add book {book_message} due to: {e}")
             book_service.rollback()
+    book_service.close()
 
 
 def handle_return_book_message(
@@ -82,6 +83,7 @@ def handle_return_book_message(
         except Exception as e:
             logger.error(f"Failed to return book {book_title} due to: {e}")
             book_service.rollback()
+    book_service.close()
 
 
 def handle_delete_book_message(
@@ -96,6 +98,7 @@ def handle_delete_book_message(
         except Exception as e:
             logger.error(f"Failed to delete book {book_title} due to: {e}")
             book_service.rollback()
+    book_service.close()
 
 
 async def check_admin_updates(

@@ -95,6 +95,7 @@ def handle_create_user_message(
         except Exception as e:
             logger.error(f"Failed to add user {user_entry} due to: {e}")
             user_service.rollback()
+    user_service.close()
 
 
 def handle_borrow_book_message(
@@ -113,6 +114,7 @@ def handle_borrow_book_message(
         except Exception as e:
             logger.error(f"Failed to add borrow entry {borrow_entry} due to: {e}")
             book_service.rollback()
+    book_service.close()
 
 
 async def check_front_end_updates(
@@ -151,9 +153,11 @@ async def check_books_for_returns(book_service: BookServiceMeta = get_book_servi
         due_borrow_entries = book_service.get_all_due()
     except Exception as e:
         logger.error(f"Failed to retrieve due books because: {e}")
+        book_service.close()
         return
     for entry in due_borrow_entries:
         try:
             await book_service.return_book(entry.id)
         except Exception as e:
             logger.error(f"Failed to return due entry with id {entry.id} because: {e}")
+    book_service.close()

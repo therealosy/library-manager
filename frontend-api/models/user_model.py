@@ -6,7 +6,7 @@ class UserModel(BaseModel):
   email: str
   firstname: str
   lastname: str
-  joined_on: datetime
+  joined_on: datetime = datetime.now()
   
   class Config:
         from_attributes = True
